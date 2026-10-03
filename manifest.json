@@ -1,0 +1,61 @@
+{
+  "name": "Apex Horizon School ERP",
+  "short_name": "School ERP",
+  "description": "Commercial Multi-Tenant School Management ERP - Attendance, Digital Diary, Fees, GPS & Payroll",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait-primary",
+  "categories": ["education", "productivity", "management"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Daily Diary & Homework",
+      "short_name": "Diary",
+      "description": "View and sign daily school homework",
+      "url": "/index.html#homework",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Attendance Roll Call",
+      "short_name": "Attendance",
+      "description": "Mark attendance and parent alerts",
+      "url": "/index.html#attendance",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Fee Counter & Invoices",
+      "short_name": "Fees",
+      "description": "Collect fees and print receipts",
+      "url": "/index.html#fees",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "GPS Bus Fleet",
+      "short_name": "GPS Bus",
+      "description": "Track school bus live location",
+      "url": "/index.html#transport",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
