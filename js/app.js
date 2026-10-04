@@ -350,16 +350,34 @@
                                     <i data-lucide="menu" class="w-5 h-5"></i>
                                 </button>
 
-                                <!-- Multi-Tenant School Switcher Dropdown -->
-                                <div class="flex items-center space-x-1 sm:space-x-2 min-w-0">
-                                    <span class="text-[11px] font-bold text-slate-400 uppercase hidden md:inline">Client Institution:</span>
-                                    <select onchange="window.app.switchSchool(this.value)" class="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 focus:outline-none cursor-pointer max-w-[130px] sm:max-w-[220px] md:max-w-none truncate">
-                                        ${allSchools.map(s => `<option value="${s.id}" ${s.id === school.id ? 'selected' : ''}>${s.name} (${s.city})</option>`).join('')}
-                                    </select>
-                                </div>
-                                <span class="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hidden lg:inline-flex">
-                                    Plan: ${(school.subscription ? school.subscription.plan : 'CBSE Pro')}
-                                </span>
+                                <!-- Multi-Tenant School Switcher / Brand Header -->
+                                ${user.role === 'superadmin' ? `
+                                    <div class="flex items-center space-x-1 sm:space-x-2 min-w-0">
+                                        <span class="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase hidden md:inline-flex items-center space-x-1">
+                                            <i data-lucide="crown" class="w-3.5 h-3.5 mr-1 text-amber-500"></i>
+                                            <span>Active Demo School:</span>
+                                        </span>
+                                        <select onchange="window.app.switchSchool(this.value)" class="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 focus:outline-none cursor-pointer max-w-[140px] sm:max-w-[220px] md:max-w-none truncate shadow-sm">
+                                            ${allSchools.map(s => `<option value="${s.id}" ${s.id === school.id ? 'selected' : ''}>🏢 ${s.name} (${s.city})</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 hidden lg:inline-flex border border-amber-300/40">
+                                        👑 SaaS Master Control
+                                    </span>
+                                ` : `
+                                    <div class="flex items-center space-x-2 min-w-0">
+                                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                                            <i data-lucide="graduation-cap" class="w-4 h-4 text-white"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h2 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate max-w-[140px] sm:max-w-xs md:max-w-md">${school.name}</h2>
+                                            <span class="text-[10px] text-slate-400 font-semibold truncate hidden sm:block">${school.city} • Affiliation: ${school.affiliation || 'CBSE'}</span>
+                                        </div>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 hidden lg:inline-flex border border-indigo-200 dark:border-indigo-800">
+                                        ${school.currentTerm || 'Term 1'} • Plan: ${(school.subscription ? school.subscription.plan : 'CBSE Pro')}
+                                    </span>
+                                `}
                             </div>
 
                             <!-- Right Controls -->
