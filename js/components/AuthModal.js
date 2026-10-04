@@ -9,24 +9,24 @@ window.AuthModal = {
     render() {
         const currentUser = window.store.getCurrentUser();
         return `
-            <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-md hidden p-4">
-                <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transform transition-all animate-scale-in">
+            <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-md hidden p-3 sm:p-4 overflow-y-auto">
+                <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transform transition-all animate-scale-in max-h-[92vh] flex flex-col my-auto">
                     <!-- Modal Header -->
-                    <div class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-purple-700 p-6 text-white text-center relative">
-                        <button onclick="window.AuthModal.close()" class="absolute top-4 right-4 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-2 transition">
+                    <div class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-purple-700 p-4 sm:p-6 text-white text-center relative shrink-0">
+                        <button onclick="window.AuthModal.close()" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-2 transition">
                             <i data-lucide="x" class="w-5 h-5"></i>
                         </button>
-                        <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3 backdrop-blur-md shadow-inner">
-                            <i data-lucide="smartphone" class="w-7 h-7 text-white"></i>
+                        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-2.5 backdrop-blur-md shadow-inner">
+                            <i data-lucide="smartphone" class="w-6 h-6 sm:w-7 sm:h-7 text-white"></i>
                         </div>
-                        <h2 class="text-xl md:text-2xl font-black tracking-tight">Mobile Number & OTP Login</h2>
+                        <h2 class="text-lg sm:text-xl md:text-2xl font-black tracking-tight">Mobile Number & OTP Login</h2>
                         <p class="text-indigo-100 text-xs mt-1 max-w-sm mx-auto">
                             Login with your registered mobile number to automatically open your dedicated <strong>Admin</strong>, <strong>Teacher</strong>, or <strong>Parent</strong> portal.
                         </p>
                     </div>
 
                     <!-- Dynamic Form Area -->
-                    <div id="authModalBody" class="p-6 space-y-5">
+                    <div id="authModalBody" class="p-4 sm:p-6 space-y-4 overflow-y-auto">
                         ${this.renderBodyContent()}
                     </div>
 
