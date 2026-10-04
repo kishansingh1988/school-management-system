@@ -103,3 +103,38 @@
 .animate-soft-pulse {
     animation: soft-pulse 2s infinite ease-in-out;
 }
+
+/* Mobile & Touch Optimizations */
+html, body {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+/* Prevent auto-zoom on iOS inputs */
+@media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="password"],
+    input[type="date"],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* Mobile Safe Area Padding */
+.safe-bottom {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+/* Smooth Drawer Transition */
+#mobileDrawer {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#mobileDrawerBackdrop {
+    transition: opacity 0.3s ease-in-out;
+}
+
