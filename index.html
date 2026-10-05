@@ -57,20 +57,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/custom.css?v=2.3">
+    <link rel="stylesheet" href="css/custom.css?v=2.4">
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
 
     <!-- Auto-Purge Stale Service Worker Cache on Version Update -->
     <script>
         (function() {
-            const CURRENT_APP_VERSION = 'v2.3';
+            const CURRENT_APP_VERSION = 'v2.4';
             if (localStorage.getItem('APEX_ERP_VERSION') !== CURRENT_APP_VERSION) {
                 localStorage.setItem('APEX_ERP_VERSION', CURRENT_APP_VERSION);
                 if ('caches' in window) {
                     caches.keys().then(names => {
                         for (let name of names) {
-                            if (name !== 'school-erp-pwa-v2.3') caches.delete(name);
+                            if (name !== 'school-erp-pwa-v2.4') caches.delete(name);
                         }
                     });
                 }
@@ -82,36 +82,36 @@
     <div id="app"></div>
 
     <!-- Application JavaScript Modules -->
-    <script src="js/utils/seedData.js?v=2.3"></script>
-    <script src="js/utils/formatters.js?v=2.3"></script>
-    <script src="js/utils/pdfGenerator.js?v=2.3"></script>
-    <script src="js/store.js?v=2.3"></script>
-    <script src="js/components/AuthModal.js?v=2.3"></script>
-    <script src="js/components/AdminDashboard.js?v=2.3"></script>
-    <script src="js/components/TeacherDashboard.js?v=2.3"></script>
-    <script src="js/components/StudentDashboard.js?v=2.3"></script>
-    <script src="js/components/ParentDashboard.js?v=2.3"></script>
-    <script src="js/components/StudentDirectory.js?v=2.3"></script>
-    <script src="js/components/TeacherDirectory.js?v=2.3"></script>
-    <script src="js/components/AttendanceModule.js?v=2.3"></script>
-    <script src="js/components/GradebookModule.js?v=2.3"></script>
-    <script src="js/components/TimetableModule.js?v=2.3"></script>
-    <script src="js/components/FeeModule.js?v=2.3"></script>
-    <script src="js/components/HomeworkModule.js?v=2.3"></script>
-    <script src="js/components/NoticeModule.js?v=2.3"></script>
-    <script src="js/components/SettingsModule.js?v=2.3"></script>
-    <script src="js/components/SuperAdminModule.js?v=2.3"></script>
-    <script src="js/components/TransportModule.js?v=2.3"></script>
-    <script src="js/components/LibraryModule.js?v=2.3"></script>
-    <script src="js/components/PayrollLeavesModule.js?v=2.3"></script>
-    <script src="js/app.js?v=2.3"></script>
+    <script src="js/utils/seedData.js?v=2.4"></script>
+    <script src="js/utils/formatters.js?v=2.4"></script>
+    <script src="js/utils/pdfGenerator.js?v=2.4"></script>
+    <script src="js/store.js?v=2.4"></script>
+    <script src="js/components/AuthModal.js?v=2.4"></script>
+    <script src="js/components/AdminDashboard.js?v=2.4"></script>
+    <script src="js/components/TeacherDashboard.js?v=2.4"></script>
+    <script src="js/components/StudentDashboard.js?v=2.4"></script>
+    <script src="js/components/ParentDashboard.js?v=2.4"></script>
+    <script src="js/components/StudentDirectory.js?v=2.4"></script>
+    <script src="js/components/TeacherDirectory.js?v=2.4"></script>
+    <script src="js/components/AttendanceModule.js?v=2.4"></script>
+    <script src="js/components/GradebookModule.js?v=2.4"></script>
+    <script src="js/components/TimetableModule.js?v=2.4"></script>
+    <script src="js/components/FeeModule.js?v=2.4"></script>
+    <script src="js/components/HomeworkModule.js?v=2.4"></script>
+    <script src="js/components/NoticeModule.js?v=2.4"></script>
+    <script src="js/components/SettingsModule.js?v=2.4"></script>
+    <script src="js/components/SuperAdminModule.js?v=2.4"></script>
+    <script src="js/components/TransportModule.js?v=2.4"></script>
+    <script src="js/components/LibraryModule.js?v=2.4"></script>
+    <script src="js/components/PayrollLeavesModule.js?v=2.4"></script>
+    <script src="js/app.js?v=2.4"></script>
 
     <!-- PWA Service Worker Registration & 1-Tap Install Prompt -->
     <script>
         // Register Service Worker with instant update
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=2.3')
+                navigator.serviceWorker.register('./sw.js?v=2.4')
                     .then(reg => {
                         reg.update();
                         console.log('[PWA] Service Worker registered & updated! Scope:', reg.scope);
