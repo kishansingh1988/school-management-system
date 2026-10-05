@@ -1,9 +1,16 @@
-// SaaS Platform Owner Master Authority & Multi-Tenant School Control Center
+// SaaS Platform Owner Master Authority, Multi-Tenant School Control & Smart RFID IoT Hub
 
 window.SuperAdminModule = {
+    activeTab: 'rfid_hub', // 'institutions' | 'rfid_hub'
+    selectedRfidStudentId: 'stu-1',
+    lastPunchResult: null,
+
     render() {
         const schools = window.store.getAllSchools();
         const activeSchool = window.store.getActiveSchool();
+        const students = window.store.getStudents();
+        const rfidDevices = window.store.getRfidDevices();
+        const rfidLogs = window.store.getRfidLogs();
 
         // Calculate SaaS Metrics
         let totalMRR = 0;
@@ -19,6 +26,10 @@ window.SuperAdminModule = {
             else if (sub.paymentStatus === 'Active Trial') trialCount++;
         });
 
+        // Selected student for RFID simulation
+        const selectedStudent = window.store.getStudentById(this.selectedRfidStudentId) || students[0] || {};
+        const studentClass = window.store.getClassById(selectedStudent.classId);
+
         return `
             <div class="space-y-6 animate-fade-in">
                 <!-- Master Authority Top Banner -->
@@ -31,13 +42,13 @@ window.SuperAdminModule = {
                             </div>
                             <div>
                                 <div class="flex items-center space-x-2 text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-1">
-                                    <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 font-bold">Master License Controller</span>
+                                    <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 font-bold">👑 SaaS Platform Owner</span>
                                     <span>•</span>
-                                    <span>Commercial SaaS Platform Edition</span>
+                                    <span>Commercial Software & IoT Hardware Hub</span>
                                 </div>
                                 <h1 class="text-2xl md:text-3xl font-black tracking-tight text-white">SaaS Platform Owner Authority Suite</h1>
                                 <p class="text-indigo-200 text-xs mt-1 max-w-2xl leading-relaxed">
-                                    Central command to manage client schools, toggle individual facilities (stop/resume on demand), enforce payment suspensions, and onboard new institutions.
+                                    Manage client school licenses, provision IoT Smart RFID Card hardware readers, demonstrate live parent WhatsApp alerts, and control facility switches.
                                 </p>
                             </div>
                         </div>
@@ -50,6 +61,397 @@ window.SuperAdminModule = {
                     </div>
                 </div>
 
+                <!-- Navigation Tabs Bar -->
+                <div class="flex items-center space-x-2 border-b border-slate-200 dark:border-slate-800 pb-1">
+                    <button onclick="window.SuperAdminModule.switchTab('rfid_hub')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
+                        this.activeTab === 'rfid_hub' 
+                            ? 'bg-gradient-to-r from-amber-500 to-indigo-600 text-white shadow-md' 
+                            : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 border border-slate-200 dark:border-slate-800'
+                    }">
+                        <i data-lucide="scan" class="w-4 h-4"></i>
+                        <span>📇 Smart RFID Hardware & IoT Gateway Hub</span>
+                        <span class="px-1.5 py-0.2 bg-white/20 text-white text-[10px] rounded-full uppercase font-extrabold">New</span>
+                    </button>
+
+                    <button onclick="window.SuperAdminModule.switchTab('institutions')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
+                        this.activeTab === 'institutions' 
+                            ? 'bg-indigo-600 text-white shadow-md' 
+                            : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 border border-slate-200 dark:border-slate-800'
+                    }">
+                        <i data-lucide="building" class="w-4 h-4"></i>
+                        <span>🏫 Client Schools & Facility Matrix (${schools.length})</span>
+                    </button>
+                </div>
+
+                ${this.activeTab === 'rfid_hub' ? this.renderRfidHubView(activeSchool, students, selectedStudent, studentClass, rfidDevices, rfidLogs) : this.renderInstitutionsView(schools, activeSchool, totalMRR, activeCount, overdueCount, trialCount)}
+
+                <!-- Modal Container -->
+                <div id="superAdminModalContainer"></div>
+            </div>
+        `;
+    },
+
+    switchTab(tab) {
+        this.activeTab = tab;
+        window.app.renderCurrentView();
+    },
+
+    renderRfidHubView(activeSchool, students, selectedStudent, studentClass, rfidDevices, rfidLogs) {
+        return `
+            <div class="space-y-6 animate-fade-in">
+                
+                <!-- Commercial Value Pitch Banner -->
+                <div class="p-6 rounded-3xl bg-gradient-to-r from-emerald-900 via-teal-900 to-indigo-950 text-white shadow-xl border border-emerald-500/30 relative overflow-hidden">
+                    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                        <div class="space-y-2 max-w-2xl">
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500 text-slate-950 uppercase">Ready for Hardware Pitch</span>
+                                <span class="text-xs text-emerald-300 font-semibold">• High-Margin Add-on Service</span>
+                            </div>
+                            <h2 class="text-xl md:text-2xl font-black tracking-tight">Automated Smart RFID ID-Card & WhatsApp Attendance Suite</h2>
+                            <p class="text-xs text-emerald-100 leading-relaxed">
+                                Offer turnkey Smart Campus Safety to schools. When students tap their RFID ID Cards at classroom doors, school turnstiles, or buses, our cloud IoT gateway instantly records attendance and dispatches automated WhatsApp messages to parents in under 1 second.
+                            </p>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 shrink-0 space-y-2 text-xs">
+                            <div class="flex justify-between space-x-6"><span class="text-emerald-200">Smart RFID Cards:</span> <strong class="text-white font-mono">₹25 / card</strong></div>
+                            <div class="flex justify-between space-x-6"><span class="text-emerald-200">IoT Wall Scanner (4G/Wi-Fi):</span> <strong class="text-white font-mono">₹4,999 / device</strong></div>
+                            <div class="flex justify-between space-x-6"><span class="text-emerald-200">WhatsApp Notification API:</span> <strong class="text-white font-mono">₹0.12 / message</strong></div>
+                            <div class="flex justify-between space-x-6"><span class="text-emerald-200">Cloud IoT Sync AMC:</span> <strong class="text-amber-300 font-mono">₹1,499 / mo / school</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Live RFID Tap Simulator (For Principal Live Demo) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- Left: Interactive Scanner Controls (7 cols) -->
+                    <div class="lg:col-span-7 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                                    <i data-lucide="scan" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Live RFID Card Tap Simulator</h3>
+                                    <p class="text-[11px] text-slate-400">Demonstrate instant ID-card tap & live WhatsApp trigger to school management</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center space-x-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>IoT Engine Online</span>
+                            </span>
+                        </div>
+
+                        <!-- Step 1: Select Student -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                1. Select Student (Smart ID Card Holder) *
+                            </label>
+                            <select id="rfidStudentSelect" onchange="window.SuperAdminModule.selectRfidStudent(this.value)" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                                ${students.map(s => {
+                                    const c = window.store.getClassById(s.classId);
+                                    const cName = c ? `${c.name} - ${c.section}` : '';
+                                    return `<option value="${s.id}" ${s.id === this.selectedRfidStudentId ? 'selected' : ''}>${s.name} (${cName} • Roll #${s.rollNo} • Parent: ${s.parentName || 'Rajesh Sharma'})</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+
+                        <!-- Step 2: Select IoT Scanner Reader Location -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                    2. Scanner Device & Location *
+                                </label>
+                                <select id="rfidDeviceSelect" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                                    <option value="RFID-CLS-10A|Smart Classroom 10-A Door Terminal (Room 301)">🚪 Classroom 10-A Door Reader</option>
+                                    <option value="RFID-GATE-01|Main Campus Entrance Pedestrian Turnstile">🏫 Main Campus Entrance Gate 1</option>
+                                    <option value="RFID-GATE-02|Junior & Primary Wing Turnstile">🎒 Junior Wing Turnstile Gate 2</option>
+                                    <option value="RFID-BUS-04|School GPS Bus #04 On-Board Scanner">🚌 School GPS Bus #04 Scanner</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                    3. Punch Direction *
+                                </label>
+                                <select id="rfidDirectionSelect" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                                    <option value="IN">🟢 PUNCH IN (Morning Check-In / Arrival)</option>
+                                    <option value="OUT">🔴 PUNCH OUT (Afternoon Departure / Exit)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Interactive Card Preview & Tap Trigger -->
+                        <div class="p-4 rounded-2xl bg-gradient-to-r from-slate-100 to-indigo-50 dark:from-slate-800/80 dark:to-indigo-950/40 border border-indigo-200/60 dark:border-indigo-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex items-center space-x-3 min-w-0">
+                                <img src="${selectedStudent.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'}" class="w-12 h-12 rounded-xl object-cover border-2 border-indigo-500 shadow shrink-0" alt="${selectedStudent.name}">
+                                <div class="min-w-0">
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.2 bg-indigo-600 text-white rounded">RFID SMART CARD</span>
+                                        <span class="text-[10px] font-mono text-slate-400">UID: NFC-98421008</span>
+                                    </div>
+                                    <h4 class="text-sm font-bold text-slate-900 dark:text-white truncate">${selectedStudent.name || 'Aarav Sharma'}</h4>
+                                    <p class="text-[11px] text-slate-500 truncate">${studentClass ? studentClass.name + ' - ' + studentClass.section : 'Class 10-A'} • Roll #${selectedStudent.rollNo || 101}</p>
+                                </div>
+                            </div>
+
+                            <button onclick="window.SuperAdminModule.handleRfidSimulateTap()" class="px-5 py-3 bg-gradient-to-r from-emerald-500 via-teal-600 to-indigo-600 hover:from-emerald-600 hover:to-indigo-700 text-white font-extrabold text-xs rounded-2xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center space-x-2 shrink-0 transform active:scale-95 border border-white/20">
+                                <i data-lucide="radio" class="w-4 h-4 animate-ping"></i>
+                                <span>📇 TAP RFID CARD NOW</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Live WhatsApp Notification Output Preview (5 cols) -->
+                    <div class="lg:col-span-5 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-lg">📲</span>
+                                <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Instant Parent WhatsApp Message</h3>
+                            </div>
+                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-full">
+                                Real-Time Trigger
+                            </span>
+                        </div>
+
+                        <!-- WhatsApp UI Simulation Card -->
+                        <div id="rfidWhatsAppPreviewBox" class="rounded-2xl bg-[#EFEAE2] dark:bg-slate-950 border border-slate-300 dark:border-slate-800 p-4 space-y-3 flex-1 flex flex-col justify-between">
+                            <div class="space-y-2">
+                                <div class="flex items-center space-x-2 pb-2 border-b border-slate-300/60 dark:border-slate-800">
+                                    <div class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
+                                        AH
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate leading-tight">${activeSchool.name}</h5>
+                                        <span class="text-[9px] text-emerald-600 font-semibold block">Official WhatsApp Business Verified ✔️</span>
+                                    </div>
+                                </div>
+
+                                <!-- Message Bubble -->
+                                <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl rounded-tl-none shadow-sm text-xs text-slate-800 dark:text-slate-200 space-y-1.5">
+                                    <p class="font-bold text-indigo-700 dark:text-indigo-400 text-[11px] flex items-center space-x-1">
+                                        <span>🔔 CAMPUS ATTENDANCE NOTIFICATION</span>
+                                    </p>
+                                    <p id="rfidSimulatedMsgText" class="text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+                                        ${this.lastPunchResult 
+                                            ? this.lastPunchResult.alertMessage 
+                                            : `Dear Rajesh Sharma, your ward Aarav Sharma (Class 10 - A, Roll #101) has tapped their Smart ID Card & safely ENTERED at Classroom 10-A Door at 08:04:12 AM today (${window.AppFormatters.formatDate(new Date().toISOString().split('T')[0])}). Status: PRESENT (On-time). - ${activeSchool.name}`
+                                        }
+                                    </p>
+                                    <div class="flex items-center justify-end space-x-1 text-[10px] text-slate-400 pt-1">
+                                        <span id="rfidSimulatedTime">${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+                                        <span class="text-sky-500 font-bold">✓✓</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900 text-[11px] text-emerald-800 dark:text-emerald-300 flex items-center justify-between">
+                                <span>WhatsApp Gateway Speed:</span>
+                                <strong class="font-mono">⚡ 0.12s Cloud Dispatch</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IoT Fleet Status & Live Scan Log -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- Left: Connected IoT Hardware Readers (5 cols) -->
+                    <div class="lg:col-span-5 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <div>
+                                <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Active IoT Hardware Devices</h3>
+                                <p class="text-[11px] text-slate-400">Classroom & Gate turnstiles connected to ${activeSchool.name}</p>
+                            </div>
+                            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950 px-2.5 py-1 rounded-xl">
+                                4 Devices Online
+                            </span>
+                        </div>
+
+                        <div class="space-y-3">
+                            ${rfidDevices.map(d => `
+                                <div class="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 flex items-center justify-between">
+                                    <div class="flex items-center space-x-3 min-w-0">
+                                        <div class="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                                            <i data-lucide="${d.id.includes('BUS') ? 'bus' : (d.id.includes('CLS') ? 'door-closed' : 'shield-check')}" class="w-4 h-4"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">${d.name}</h4>
+                                            <p class="text-[10px] text-slate-400 font-mono truncate">${d.location} • IP: ${d.ip}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <span class="text-[10px] font-bold text-emerald-600 block">${d.status.split(' ')[0]} ✅</span>
+                                        <span class="text-[9px] text-slate-400 font-mono">${d.scansToday} scans today</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Right: Live RFID Punch Activity Stream (7 cols) -->
+                    <div class="lg:col-span-7 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <div>
+                                <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Real-Time RFID Card Tap Feed</h3>
+                                <p class="text-[11px] text-slate-400">Live stream of student swipes synced to cloud & parent WhatsApp</p>
+                            </div>
+                            <span class="text-[11px] font-bold text-emerald-600 flex items-center space-x-1">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>Live Feed</span>
+                            </span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-400 uppercase text-[9px] font-bold tracking-wider">
+                                    <tr>
+                                        <th class="p-2.5">Student</th>
+                                        <th class="p-2.5">Location / Gate</th>
+                                        <th class="p-2.5">Direction</th>
+                                        <th class="p-2.5">Punch Time</th>
+                                        <th class="p-2.5 text-right">WhatsApp Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-[11px]">
+                                    ${rfidLogs.map(log => `
+                                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                                            <td class="p-2.5">
+                                                <div class="font-bold text-slate-900 dark:text-white">${log.studentName}</div>
+                                                <div class="text-[10px] text-slate-400">${log.className} • Roll #${log.studentRoll}</div>
+                                            </td>
+                                            <td class="p-2.5 font-medium text-slate-700 dark:text-slate-300">
+                                                ${log.deviceLocation.split('(')[0]}
+                                            </td>
+                                            <td class="p-2.5">
+                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${log.direction === 'IN' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'}">
+                                                    ${log.direction === 'IN' ? 'CHECK-IN' : 'CHECK-OUT'}
+                                                </span>
+                                            </td>
+                                            <td class="p-2.5 font-mono font-semibold text-indigo-600 dark:text-indigo-400">
+                                                ${log.timeStr}
+                                            </td>
+                                            <td class="p-2.5 text-right font-bold text-emerald-600">
+                                                ${log.whatsAppStatus}
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IoT Machine Webhook API Integration Specs (For Hardware Engineers) -->
+                <div class="p-6 rounded-3xl bg-slate-900 text-white shadow-xl border border-slate-800 space-y-4">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="code-2" class="w-5 h-5 text-amber-400"></i>
+                            <div>
+                                <h3 class="font-extrabold text-sm text-white">IoT Biometric / RFID Machine REST Webhook Spec</h3>
+                                <p class="text-[11px] text-slate-400">Plug-and-play webhook for Mantra, Matrix, eSSL, Hikvision, and ESP32 readers</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[11px] font-mono text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-800">
+                                POST https://api.schoolerp.in/v1/iot/rfid-punch
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1 text-slate-300">
+                            <span class="text-amber-400 font-bold block mb-1">// Sample JSON Hardware Payload:</span>
+                            <div>{</div>
+                            <div class="pl-4">"deviceId": "<span class="text-emerald-400">RFID-CLS-10A</span>",</div>
+                            <div class="pl-4">"schoolCode": "<span class="text-emerald-400">${activeSchool.code || 'AHPS-DEL-01'}</span>",</div>
+                            <div class="pl-4">"rfidUid": "<span class="text-emerald-400">NFC-98421008</span>",</div>
+                            <div class="pl-4">"direction": "<span class="text-emerald-400">IN</span>",</div>
+                            <div class="pl-4">"timestamp": "<span class="text-emerald-400">${new Date().toISOString()}</span>"</div>
+                            <div>}</div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-slate-300">
+                            <span class="text-emerald-400 font-bold block">// Cloud ERP Automated Actions:</span>
+                            <div class="flex items-center space-x-2 text-[11px]">
+                                <span class="text-emerald-400">✓</span>
+                                <span>Authenticates RFID Card UID with Student Roster</span>
+                            </div>
+                            <div class="flex items-center space-x-2 text-[11px]">
+                                <span class="text-emerald-400">✓</span>
+                                <span>Marks Daily Assembly Attendance Roll in 80ms</span>
+                            </div>
+                            <div class="flex items-center space-x-2 text-[11px]">
+                                <span class="text-emerald-400">✓</span>
+                                <span>Triggers WhatsApp Business Cloud API to Parent</span>
+                            </div>
+                            <div class="flex items-center space-x-2 text-[11px]">
+                                <span class="text-emerald-400">✓</span>
+                                <span>Updates Parent Portal Live Campus Status Banner</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        `;
+    },
+
+    selectRfidStudent(studentId) {
+        this.selectedRfidStudentId = studentId;
+        window.app.renderCurrentView();
+    },
+
+    playBeepSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, ctx.currentTime); // High pitch crisp 880Hz confirmation beep
+            gain.gain.setValueAtTime(0.18, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.18);
+        } catch(e) {
+            console.log("Web Audio API not supported", e);
+        }
+    },
+
+    handleRfidSimulateTap() {
+        const studentSelect = document.getElementById("rfidStudentSelect");
+        const deviceSelect = document.getElementById("rfidDeviceSelect");
+        const directionSelect = document.getElementById("rfidDirectionSelect");
+
+        const studentId = studentSelect ? studentSelect.value : this.selectedRfidStudentId;
+        const deviceVal = deviceSelect ? deviceSelect.value : "RFID-CLS-10A|Smart Classroom 10-A Door Terminal (Room 301)";
+        const [deviceId, deviceLocation] = deviceVal.split("|");
+        const direction = directionSelect ? directionSelect.value : "IN";
+
+        // 1. Play hardware sound feedback
+        this.playBeepSound();
+
+        // 2. Record punch in store
+        const res = window.store.recordRfidPunch({
+            studentId: studentId,
+            deviceId: deviceId,
+            deviceLocation: deviceLocation,
+            direction: direction
+        });
+
+        if (res) {
+            this.lastPunchResult = res.logItem;
+            window.app.showToast(`📇 RFID Scanned! WhatsApp alert sent to ${res.logItem.parentPhone}`, 'success');
+            window.app.renderCurrentView();
+        }
+    },
+
+    renderInstitutionsView(schools, activeSchool, totalMRR, activeCount, overdueCount, trialCount) {
+        return `
+            <div class="space-y-6 animate-fade-in">
                 <!-- SaaS Revenue & Operational Metrics Bar -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <!-- Total Schools -->
@@ -232,9 +634,6 @@ window.SuperAdminModule = {
                         }).join('')}
                     </div>
                 </div>
-
-                <!-- Modal Container -->
-                <div id="superAdminModalContainer"></div>
             </div>
         `;
     },
