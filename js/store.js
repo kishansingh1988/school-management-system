@@ -705,11 +705,154 @@
             }
         }
 
-        markAllNotificationsRead() {
-            if (!this.state.notifications) return;
-            this.state.notifications.forEach(n => n.read = true);
+        // ================= SMART RFID / NFC HARDWARE & IOT GATEWAY =================
+        getRfidDevices(schoolId = null) {
+            if (!this.state.rfidDevices) {
+                this.state.rfidDevices = [
+                    { id: "RFID-GATE-01", name: "Main Campus Entrance Pedestrian Turnstile", location: "Main Gate (North Wing)", status: "Online (Wi-Fi 5GHz)", model: "Mantra Bio-RFID 4G", ip: "192.168.1.101", lastPing: "Just now", scansToday: 412, battery: "Mains AC Power" },
+                    { id: "RFID-GATE-02", name: "Junior & Primary Wing Turnstile", location: "Junior Block Gate 2", status: "Online (4G LTE SIM)", model: "Matrix COSEC Door Reader", ip: "192.168.1.102", lastPing: "2m ago", scansToday: 285, battery: "Mains AC Power" },
+                    { id: "RFID-CLS-10A", name: "Smart Classroom 10-A Door Terminal", location: "Room 301 (Senior Wing)", status: "Online (Wi-Fi)", model: "eSSL SilkBio RFID Terminal", ip: "192.168.1.115", lastPing: "Just now", scansToday: 38, battery: "Mains AC Power" },
+                    { id: "RFID-BUS-04", name: "School GPS Bus #04 On-Board Scanner", location: "Route: Rohini - Pitampura", status: "Online (4G GPS IoT)", model: "Queclink Vehicle IoT Scanner", ip: "10.0.8.44", lastPing: "1m ago", scansToday: 42, battery: "12V Vehicle Bus Battery" }
+                ];
+            }
+            return this.state.rfidDevices;
+        }
+
+        getRfidLogs() {
+            if (!this.state.rfidLogs) {
+                this.state.rfidLogs = [
+                    {
+                        id: "rfid-seed-1",
+                        studentId: "stu-1",
+                        studentName: "Aarav Sharma",
+                        studentRoll: 101,
+                        classId: "cls-10a",
+                        className: "Class 10 - A",
+                        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256",
+                        rfidUid: "NFC-98421008",
+                        deviceId: "RFID-GATE-01",
+                        deviceLocation: "Main Campus Entrance Gate 1",
+                        direction: "IN",
+                        timeStr: "08:02:14 AM",
+                        date: new Date().toISOString().split('T')[0],
+                        parentPhone: "+91 98111 55443",
+                        parentName: "Rajesh Sharma",
+                        whatsAppStatus: "Delivered (0.11s) ✅",
+                        alertMessage: "Dear Rajesh Sharma, your ward Aarav Sharma (Class 10 - A, Roll #101) has tapped their Smart ID Card & safely ENTERED at Main Campus Entrance Gate 1 at 08:02:14 AM today. - Apex Horizon Public School"
+                    },
+                    {
+                        id: "rfid-seed-2",
+                        studentId: "stu-2",
+                        studentName: "Ananya Verma",
+                        studentRoll: 102,
+                        classId: "cls-10a",
+                        className: "Class 10 - A",
+                        avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256",
+                        rfidUid: "NFC-77319940",
+                        deviceId: "RFID-GATE-01",
+                        deviceLocation: "Main Campus Entrance Gate 1",
+                        direction: "IN",
+                        timeStr: "08:04:30 AM",
+                        date: new Date().toISOString().split('T')[0],
+                        parentPhone: "+91 98111 66554",
+                        parentName: "Sunil Verma",
+                        whatsAppStatus: "Delivered (0.14s) ✅",
+                        alertMessage: "Dear Sunil Verma, your ward Ananya Verma (Class 10 - A, Roll #102) has tapped their Smart ID Card & safely ENTERED at Main Campus Entrance Gate 1 at 08:04:30 AM today. - Apex Horizon Public School"
+                    }
+                ];
+            }
+            return this.state.rfidLogs;
+        }
+
+        recordRfidPunch(punchData) {
+            const student = this.getStudentById(punchData.studentId);
+            if (!student) return null;
+
+            const school = this.getSchool();
+            const todayStr = new Date().toISOString().split('T')[0];
+            const timeStr = punchData.timeStr || new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const classInfo = this.getClassById(student.classId);
+            const className = classInfo ? `${classInfo.name} - ${classInfo.section}` : "Class";
+            const parentPhone = student.parentPhone || student.phone || "+91 98111 55443";
+            const parentName = student.parentName || "Parent / Guardian";
+
+            // 1. Mark attendance in state if direction === 'IN'
+            if (!this.state.attendance) this.state.attendance = {};
+            if (!this.state.attendance[todayStr]) this.state.attendance[todayStr] = {};
+            if (!this.state.attendance[todayStr][student.classId]) this.state.attendance[todayStr][student.classId] = {};
+
+            this.state.attendance[todayStr][student.classId][student.id] = {
+                status: 'P',
+                remark: `📇 Smart RFID Card Tap at ${punchData.deviceLocation} (${timeStr})`,
+                rfidPunchTime: timeStr,
+                rfidDeviceId: punchData.deviceId,
+                rfidLocation: punchData.deviceLocation
+            };
+
+            // 2. Generate WhatsApp Alert Content
+            const isEntry = punchData.direction === 'IN';
+            const alertTitle = isEntry 
+                ? `📇 Smart RFID Tap: ${student.name} Safe Entry` 
+                : `📇 Smart RFID Tap: ${student.name} Campus Exit`;
+
+            const alertMessage = isEntry
+                ? `Dear ${parentName}, your ward ${student.name} (${className}, Roll #${student.rollNo}) has tapped their Smart ID Card & safely ENTERED at ${punchData.deviceLocation} at ${timeStr} today (${window.AppFormatters.formatDate(todayStr)}). - ${school.name}`
+                : `Dear ${parentName}, your ward ${student.name} (${className}, Roll #${student.rollNo}) has tapped their Smart ID Card & safely EXITED from ${punchData.deviceLocation} at ${timeStr} today. - ${school.name}`;
+
+            // 3. Add to notifications feed
+            if (!this.state.notifications) this.state.notifications = [];
+            const notifItem = {
+                id: window.AppFormatters.generateId("notif"),
+                studentId: student.id,
+                studentName: student.name,
+                parentId: student.parentId || "par-1",
+                parentName: parentName,
+                parentPhone: parentPhone,
+                classId: student.classId,
+                className: className,
+                date: todayStr,
+                time: timeStr,
+                status: 'P',
+                title: alertTitle,
+                message: alertMessage,
+                severity: isEntry ? 'success' : 'info',
+                channel: 'WhatsApp Automation + SMS API Gateway',
+                deliveryStatus: 'Delivered (WhatsApp API • 0.12s latency)',
+                read: false,
+                timestamp: new Date().toISOString()
+            };
+            this.state.notifications.unshift(notifItem);
+
+            // 4. Record to RFID Activity Log
+            if (!this.state.rfidLogs) this.state.rfidLogs = [];
+            const logItem = {
+                id: window.AppFormatters.generateId("rfid"),
+                studentId: student.id,
+                studentName: student.name,
+                studentRoll: student.rollNo,
+                classId: student.classId,
+                className: className,
+                avatar: student.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256',
+                rfidUid: student.rfidUid || ('NFC-' + Math.floor(10000000 + Math.random() * 90000000)),
+                deviceId: punchData.deviceId,
+                deviceLocation: punchData.deviceLocation,
+                direction: punchData.direction,
+                timeStr: timeStr,
+                date: todayStr,
+                parentPhone: parentPhone,
+                parentName: parentName,
+                whatsAppStatus: 'Delivered (0.12s) ✅',
+                alertMessage: alertMessage
+            };
+            this.state.rfidLogs.unshift(logItem);
+            if (this.state.rfidLogs.length > 50) this.state.rfidLogs.pop();
+
             this.saveState();
+            this.emit("attendance:changed", { date: todayStr, classId: student.classId });
             this.emit("notifications:changed", this.state.notifications);
+            this.emit("rfid:punched", logItem);
+
+            return { logItem, notifItem };
         }
 
         // ================= EXAMS & GRADES =================
